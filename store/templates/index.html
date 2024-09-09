@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+<!-- the block content tags for containing content of the page -->
+{% block content %}
+
+
+<div class="bg-body-tertiary p-5 rounded">
+    {% if messages %}
+    <div class="alert alert-success" role="alert">
+        {% for message in messages %}
+        {{message}}
+        {% endfor %}
+    </div>
+    {% endif %}
+    <h1>{{title}}</h1>
+    <form method='POST' action=''>
+        {% csrf_token %}
+        {{form|crispy}}
+        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Search</button>
+    </form>
+    <br>
+    <div class="table-responsive">
+    <table class='table align-middle table-hover table-sm' style="text-align: center;">
+        <thead class="table-info">
+            <tr>
+                <th>COUNT</th>
+                <th>CATEGORY</th>
+                <th>ITEM NAME</th>
+                <th>QUANTITY IN STORE</th>
+                <th>REORDER_LEVEL</th>
+                <th>TIMESTAMP</th>
+                <th>LAST UPDATED</th>
+                <th>DELETE</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for instance in queryset %}
+            <tr class="table-active">
+                <td>{{forloop.counter}}</td>
+                <td>{{instance.category}}</td>
+                <td><a href="{% url 'update_items' instance.id %}" style="text-decoration: none; color: black;">{{instance.item_name}}</a></td>
+                <td>
+                {% if instance.quantity <= instance.reorder_level %}
+                <div class="bg-danger"><a href="{% url 'store_items' instance.id %}" style="text-decoration: none; color: black;">{{instance.quantity}}</a></div>
+                {% else %}
+                <div><a href="{% url 'store_items' instance.id %}" style="text-decoration: none; color: black;">{{instance.quantity}}</a></div>
+                {% endif %}
+                </td>
+                <td><a href="{% url 'reorder_level' instance.id %}" style="text-decoration: none; color: black;">{{instance.reorder_level}}</a></td>
+                <td>{{instance.timestamp}}</td>
+                <td>{{instance.last_updated}}</td>
+                <!-- Button trigger modal -->
+                <td><a type="button" data-bs-toggle="modal" data-bs-target="#deleteModal{{instance.id}}"><img src="{% static 'img/bin.png' %}" style="height: 25px; width: 25px;"/></a></td>
+
+                <!-- Modal -->
+                <div class="modal fade" id="deleteModal{{instance.id}}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Modal title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h5>Are you sure you want to delete?</h5>
+                        </div>
+                        <div class="modal-footer">
+                            <form action="{% url 'delete_items' instance.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Yes, I'm sure</button>                
+                            </form>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+{% endblock %}
